@@ -1,0 +1,23 @@
+{
+  "name": "textile-cone-inspector",
+  "version": "1.0.0",
+  "description": "Local-inference web app for textile cone-tip inspection",
+  "private": true,
+  "workspaces": [
+    "app/frontend",
+    "app/backend",
+    "app/shared"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm install --workspace=app/frontend && npm install --workspace=app/backend && npm install --workspace=app/shared",
+    "dev:frontend": "npm run dev --workspace=app/frontend",
+    "dev:backend": "npm run dev --workspace=app/backend",
+    "build:frontend": "npm run build --workspace=app/frontend",
+    "start:backend": "npm start --workspace=app/backend",
+    "migrate": "npm run migrate --workspace=app/backend",
+    "test": "npm test --workspaces"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
