@@ -1,15 +1,16 @@
 # Textile Cone-Tip Inspector
 
-Local-inference web application for automated textile cone-tip color inspection with user-in-the-loop verification.
+Local-inference web application for automated textile cone-tip inspection using YOLO classification.
 
 ## Features
 
-- Bulk image upload with deduplication
-- Interactive gallery with color selection
-- Automated color-based classification (ΔE tolerance)
-- Manual override with audit trail
-- Local inference only (on-premises)
-- PostgreSQL storage for full traceability
+- 📷 Camera or upload-based inspection
+- 🤖 YOLO best.pt model integration
+- ✅ Auto-classification (Good/Reject)
+- 📊 Real-time inspection results
+- 🗄️ PostgreSQL storage with thumbnails
+- 📈 Inspection reports and audit trail
+- 🔒 Local inference only (on-premises)
 
 ## Architecture
 
@@ -42,11 +43,18 @@ Local-inference web application for automated textile cone-tip color inspection 
 
 ```
 app/
-├── frontend/     React JSX application
-├── backend/      Node.js API server
-├── shared/       Shared validators and constants
-└── db/           Database migrations and seeds
+├── frontend/          React JSX application
+├── backend/           Node.js API server
+├── shared/            Shared validators and constants
+└── db/                Database migrations and seeds
+inference-service/     Python YOLO inference service
 ```
+
+## Main Pages
+
+- **Inspection**: Camera/upload scanning with real-time classification
+- **Reports**: View and export inspection batch results
+- **References**: Upload reference images (admin only)
 
 ## Documentation
 

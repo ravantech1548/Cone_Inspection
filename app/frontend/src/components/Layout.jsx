@@ -10,9 +10,9 @@ const Layout = () => {
       <nav className="navbar">
         <div className="nav-brand">Textile Cone Inspector</div>
         <div className="nav-links">
-          <Link to="/upload">Upload</Link>
-          <Link to="/audit">Audit</Link>
-          {user?.role === 'admin' && <Link to="/admin">Admin</Link>}
+          <Link to="/inspection">Inspection</Link>
+          <Link to="/audit">Reports</Link>
+          {user?.role === 'admin' && <Link to="/references">References</Link>}
         </div>
         <div className="nav-user">
           <span>{user?.username} ({user?.role})</span>

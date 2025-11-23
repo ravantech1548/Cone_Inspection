@@ -4,11 +4,11 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Layout from './components/Layout.jsx';
 import LoginPage from './pages/LoginPage.jsx';
-import UploadPage from './pages/UploadPage.jsx';
 import GalleryPage from './pages/GalleryPage.jsx';
 import DetailPage from './pages/DetailPage.jsx';
 import AuditPage from './pages/AuditPage.jsx';
-import AdminPage from './pages/AdminPage.jsx';
+import ReferencesPage from './pages/ReferencesPage.jsx';
+import InspectionPage from './pages/InspectionPage.jsx';
 
 function App() {
   return (
@@ -18,12 +18,15 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route path="/" element={<Navigate to="/upload" replace />} />
-            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/" element={<Navigate to="/inspection" replace />} />
+            <Route path="/inspection" element={<InspectionPage />} />
             <Route path="/gallery/:batchId" element={<GalleryPage />} />
             <Route path="/image/:imageId" element={<DetailPage />} />
-            <Route path="/audit" element={<ProtectedRoute roles={['supervisor', 'admin']}><AuditPage /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminPage /></ProtectedRoute>} />
+            <Route path="/audit" element={<AuditPage />} />
+            <Route path="/references" element={<ProtectedRoute roles={['admin']}><ReferencesPage /></ProtectedRoute>} />
+            <Route path="/upload" element={<Navigate to="/inspection" replace />} />
+            <Route path="/admin" element={<Navigate to="/inspection" replace />} />
+            <Route path="*" element={<Navigate to="/inspection" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

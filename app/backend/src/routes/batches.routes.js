@@ -27,15 +27,15 @@ router.post('/', async (req, res, next) => {
 router.get('/', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT b.*, u.username, ct.color_name as acceptable_color_name
+      `SELECT b.*, u.username
        FROM batches b
        LEFT JOIN users u ON b.user_id = u.id
-       LEFT JOIN color_taxonomy ct ON b.acceptable_color_id = ct.id
        ORDER BY b.created_at DESC`
     );
     
     res.json(result.rows);
   } catch (error) {
+    console.error('Error loading batches:', error);
     next(error);
   }
 });
@@ -43,10 +43,9 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT b.*, u.username, ct.color_name as acceptable_color_name
+      `SELECT b.*, u.username
        FROM batches b
        LEFT JOIN users u ON b.user_id = u.id
-       LEFT JOIN color_taxonomy ct ON b.acceptable_color_id = ct.id
        WHERE b.id = $1`,
       [req.params.id]
     );
@@ -57,6 +56,7 @@ router.get('/:id', async (req, res, next) => {
     
     res.json(result.rows[0]);
   } catch (error) {
+    console.error('Error loading batch:', error);
     next(error);
   }
 });

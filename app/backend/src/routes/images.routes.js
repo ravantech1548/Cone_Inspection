@@ -81,30 +81,28 @@ router.get('/', async (req, res, next) => {
     const { batchId, classification, page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
     
-    let queryText = `
-      SELECT i.*, p.confidence as prediction_confidence
-      FROM images i
-      LEFT JOIN predictions p ON i.id = p.image_id
-      WHERE 1=1
-    `;
+    let queryText = 'SELECT i.* FROM images i WHERE 1=1';
     const params = [];
     
     if (batchId) {
       params.push(batchId);
-      queryText += ` AND i.batch_id = $${params.length}`;
+      queryText += ' AND i.batch_id = $' + params.length;
     }
     
     if (classification) {
       params.push(classification);
-      queryText += ` AND i.classification = $${params.length}`;
+      queryText += ' AND i.classification = $' + params.length;
     }
     
-    queryText += ` ORDER BY i.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    queryText += ' ORDER BY i.created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
     params.push(limit, offset);
+    
+    console.log('Images query:', queryText, params);
     
     const result = await query(queryText, params);
     res.json(result.rows);
   } catch (error) {
+    console.error('Error loading images:', error);
     next(error);
   }
 });
