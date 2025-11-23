@@ -32,18 +32,42 @@ const AuditPage = () => {
     }
   };
 
-  const exportReport = (format) => {
-    window.open(`/api/reports/batch/${selectedBatch}/export?format=${format}`, '_blank');
+  const exportReport = async (format) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/reports/batch/${selectedBatch}/export?format=${format}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `batch-${selectedBatch}-report.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      alert(`Failed to export: ${error.message}`);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="audit-page">
-      <h1>Audit & Reports</h1>
+      <h1>Inspection Reports</h1>
+      <p>View and export inspection batch results</p>
 
       <div className="batch-list">
-        <h2>Batches</h2>
+        <h2>Inspection Batches</h2>
         <table>
           <thead>
             <tr>
@@ -88,42 +112,82 @@ const AuditPage = () => {
           <div className="report-summary">
             <h3>Summary</h3>
             <p>Inspector: {report.batch.username}</p>
-            <p>Acceptable Color: {report.batch.acceptable_color_name}</p>
-            <p>ΔE Tolerance: {report.batch.delta_e_tolerance}</p>
+            <p>Selected Good Class: {report.batch.selected_good_class || 'Not set'}</p>
+            <p>Status: {report.batch.status}</p>
             <p>Total Images: {report.batch.total_images}</p>
             <p>Good: {report.batch.good_count}</p>
             <p>Reject: {report.batch.reject_count}</p>
+            <p>Created: {new Date(report.batch.created_at).toLocaleString()}</p>
+            {report.batch.finalized_at && (
+              <p>Finalized: {new Date(report.batch.finalized_at).toLocaleString()}</p>
+            )}
           </div>
 
-          {report.overrides.length > 0 && (
-            <div className="overrides-section">
-              <h3>Manual Overrides ({report.overrides.length})</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>Original</th>
-                    <th>New</th>
-                    <th>Reason</th>
-                    <th>User</th>
-                    <th>Date</th>
+          <div className="images-section">
+            <h3>Images ({report.images.length})</h3>
+            <table className="report-images-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Filename</th>
+                  <th>Classification</th>
+                  <th>Predicted Class</th>
+                  <th>Confidence</th>
+                  <th>Model</th>
+                  <th>Inference Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.images.map(image => (
+                  <tr key={image.id}>
+                    <td>
+                      {image.thumbnail ? (
+                        <img 
+                          src={`data:image/jpeg;base64,${image.thumbnail}`}
+                          alt={image.filename}
+                          className="report-thumbnail"
+                          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                      ) : (
+                        <div 
+                          className="report-thumbnail-placeholder"
+                          style={{ 
+                            width: '60px', 
+                            height: '60px', 
+                            backgroundColor: image.hex_color || '#ccc',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            color: '#fff'
+                          }}
+                        >
+                          No Image
+                        </div>
+                      )}
+                    </td>
+                    <td>{image.filename}</td>
+                    <td className={image.classification}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: image.classification === 'good' ? '#d4edda' : '#f8d7da',
+                        color: image.classification === 'good' ? '#155724' : '#721c24',
+                        fontWeight: 'bold'
+                      }}>
+                        {image.classification.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>{image.payload?.predicted_class || 'N/A'}</td>
+                    <td>{image.confidence ? (image.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
+                    <td>{image.model_name}:{image.model_version}</td>
+                    <td>{image.inference_time_ms}ms</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {report.overrides.map(override => (
-                    <tr key={override.id}>
-                      <td>{override.filename}</td>
-                      <td>{override.original_classification}</td>
-                      <td>{override.new_classification}</td>
-                      <td>{override.reason}</td>
-                      <td>{override.username}</td>
-                      <td>{new Date(override.created_at).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

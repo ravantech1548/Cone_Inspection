@@ -8,7 +8,9 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize(ROLES.ADMIN, ROLES.SUPERVISOR));
 
-// Color taxonomy
+// Color taxonomy - DISABLED (not used with YOLO)
+// Uncomment if you need color-based classification instead of YOLO classes
+/*
 router.get('/taxonomy', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM color_taxonomy ORDER BY color_name');
@@ -34,6 +36,7 @@ router.post('/taxonomy', async (req, res, next) => {
     next(error);
   }
 });
+*/
 
 // Models
 router.get('/models', async (req, res, next) => {
@@ -76,7 +79,9 @@ router.patch('/models/:id/activate', async (req, res, next) => {
   }
 });
 
-// Prompts
+// Prompts - DISABLED (not used with YOLO)
+// Uncomment if you need to manage prompts for LLM-based classification
+/*
 router.get('/prompts', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM prompts ORDER BY created_at DESC');
@@ -102,5 +107,6 @@ router.post('/prompts', async (req, res, next) => {
     next(error);
   }
 });
+*/
 
 export default router;

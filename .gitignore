@@ -9,3 +9,4 @@ coverage/
 uploads/
 *.pem
 *.key
+venv/

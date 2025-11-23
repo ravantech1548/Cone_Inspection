@@ -36,6 +36,10 @@ app.use((req, res, next) => {
   next();
 });
 
+import referencesRoutes from './routes/references.routes.js';
+import inspectionRoutes from './routes/inspection.routes.js';
+import modelRoutes from './routes/model.routes.js';
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/batches', batchesRoutes);
@@ -43,6 +47,9 @@ app.use('/api/images', imagesRoutes);
 app.use('/api/classify', classifyRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/references', referencesRoutes);
+app.use('/api/inspection', inspectionRoutes);
+app.use('/api/model', modelRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

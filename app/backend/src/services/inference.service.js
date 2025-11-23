@@ -4,15 +4,83 @@ import { query } from '../db/pool.js';
 import { rgbToLab, labToHex } from './color.service.js';
 import { AppError } from '../middleware/errorHandler.js';
 
+// Call Python YOLO inference service
+const callYOLOInference = async (imagePath) => {
+  try {
+    console.log('[YOLO] Calling inference service:', config.inference.serviceUrl);
+    console.log('[YOLO] Image path:', imagePath);
+    
+    const response = await fetch(`${config.inference.serviceUrl}/api/classify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        image_path: imagePath,
+        confidence_threshold: 0.3  // Lowered from 0.7
+      }),
+      signal: AbortSignal.timeout(config.inference.timeout)
+    });
+    
+    console.log('[YOLO] Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[YOLO] Error response:', errorText);
+      throw new Error(`Inference service returned ${response.status}: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('[YOLO] Inference result:', result);
+    
+    return result;
+  } catch (error) {
+    console.error('[YOLO] Inference failed:', error.message);
+    console.error('[YOLO] Falling back to classical method');
+    return null;
+  }
+};
+
 export const extractTipColor = async (imagePath) => {
   const startTime = Date.now();
   
   try {
-    // Classical approach: extract dominant color from center region (tip area)
+    // Try YOLO model first
+    const yoloResult = await callYOLOInference(imagePath);
+    
+    if (yoloResult && !yoloResult.error && yoloResult.predicted_class) {
+      // Map YOLO class to approximate LAB color for visualization
+      // This mapping supports your classes: green_brown, brown_purple_ring, brown_plain
+      const classToColor = {
+        'green_brown': { L: 55, A: -20, B: 15 },
+        'green': { L: 60, A: -30, B: 20 },
+        'brown_purple_ring': { L: 50, A: 10, B: 5 },
+        'brown_plain': { L: 50, A: 10, B: 20 },
+        'brown': { L: 50, A: 10, B: 20 },
+        'beige': { L: 75, A: 5, B: 15 },
+        'striped': { L: 65, A: 0, B: 10 },
+        'white': { L: 90, A: 0, B: 0 }
+      };
+      
+      // Normalize class name (handle underscores and case)
+      const normalizedClass = yoloResult.predicted_class.toLowerCase().replace(/\s+/g, '_');
+      const lab = classToColor[normalizedClass] || { L: 50, A: 0, B: 0 };
+      const hex = labToHex(lab);
+      
+      return {
+        lab,
+        hex,
+        confidence: yoloResult.confidence,
+        inferenceTime: yoloResult.inference_time_ms,
+        predictedClass: yoloResult.predicted_class,
+        allClasses: yoloResult.all_classes,
+        method: 'yolo',
+        tipMask: null
+      };
+    }
+    
+    // Fallback to classical approach
     const image = sharp(imagePath);
     const metadata = await image.metadata();
     
-    // Extract center 20% region (assumed tip location)
     const centerX = Math.floor(metadata.width * 0.4);
     const centerY = Math.floor(metadata.height * 0.4);
     const regionWidth = Math.floor(metadata.width * 0.2);
@@ -23,7 +91,6 @@ export const extractTipColor = async (imagePath) => {
       .raw()
       .toBuffer({ resolveWithObject: true });
     
-    // Calculate average RGB
     let r = 0, g = 0, b = 0;
     const pixelCount = info.width * info.height;
     
@@ -45,8 +112,9 @@ export const extractTipColor = async (imagePath) => {
     return {
       lab,
       hex,
-      confidence: 0.85, // Classical method confidence
+      confidence: 0.85,
       inferenceTime,
+      method: 'classical',
       tipMask: { centerX, centerY, width: regionWidth, height: regionHeight }
     };
   } catch (error) {
@@ -67,25 +135,21 @@ export const runInferenceOnImage = async (imageId) => {
   const image = imageResult.rows[0];
   const result = await extractTipColor(image.file_path);
   
-  // Get active model and prompt
+  // Get active model
   const modelResult = await query(
     'SELECT id FROM models WHERE is_active = true LIMIT 1'
   );
-  const promptResult = await query(
-    'SELECT id FROM prompts WHERE is_active = true LIMIT 1'
-  );
   
   const modelId = modelResult.rows[0]?.id;
-  const promptId = promptResult.rows[0]?.id;
   
-  // Store prediction
+  // Store prediction (prompt_id is nullable, not used with YOLO)
   await query(
     `INSERT INTO predictions (image_id, model_id, prompt_id, payload, tip_mask, inference_time_ms)
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [
       imageId,
       modelId,
-      promptId,
+      null, // prompt_id not used with YOLO
       JSON.stringify(result.lab),
       JSON.stringify(result.tipMask),
       result.inferenceTime

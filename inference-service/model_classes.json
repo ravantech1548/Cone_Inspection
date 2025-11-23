@@ -1,0 +1,13 @@
+{
+  "num_classes": 3,
+  "class_names": [
+    "Brown_plain",
+    "Brown_purple_ring",
+    "Green_brown_shade"
+  ],
+  "class_mapping": {
+    "0": "Brown_plain",
+    "1": "Brown_purple_ring",
+    "2": "Green_brown_shade"
+  }
+}
