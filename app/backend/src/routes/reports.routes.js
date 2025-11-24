@@ -23,7 +23,9 @@ router.get('/batch/:id', async (req, res, next) => {
     
     const imagesResult = await query(
       `SELECT i.id, i.filename, i.classification, i.hex_color, i.confidence, i.thumbnail,
-              p.inference_time_ms, p.payload, m.name as model_name, m.version as model_version
+              i.created_at,
+              p.inference_time_ms, p.payload, p.created_at as prediction_time,
+              m.name as model_name, m.version as model_version
        FROM images i
        LEFT JOIN predictions p ON i.id = p.image_id
        LEFT JOIN models m ON p.model_id = m.id
@@ -82,10 +84,12 @@ router.get('/batch/:id/export', async (req, res, next) => {
     
     const selectedGoodClass = metadataResult.rows[0]?.selected_good_class || 'Not set';
     
-    // Get images data
+    // Get images data with timestamps
     const result = await query(
       `SELECT i.filename, i.classification, i.hex_color, i.lab_color, i.confidence,
-              p.inference_time_ms, p.payload, m.name as model_name, m.version as model_version
+              i.created_at,
+              p.inference_time_ms, p.payload, p.created_at as prediction_time,
+              m.name as model_name, m.version as model_version
        FROM images i
        LEFT JOIN predictions p ON i.id = p.image_id
        LEFT JOIN models m ON p.model_id = m.id
@@ -119,12 +123,22 @@ router.get('/batch/:id/export', async (req, res, next) => {
       // Images Section
       csvLines.push('INSPECTION DETAILS');
       csvLines.push('');
-      const headers = ['Filename', 'Classification', 'Predicted Class', 'Selected Good Class', 'Confidence', 'Hex Color', 'Model', 'Inference Time (ms)'];
+      const headers = ['Filename', 'Classification', 'Predicted Class', 'Selected Good Class', 'Confidence', 'Hex Color', 'Date & Time', 'Model', 'Inference Time (ms)'];
       csvLines.push(headers.join(','));
       
       result.rows.forEach(row => {
         const predictedClass = row.payload?.predicted_class || 'N/A';
         const confidence = row.confidence ? (row.confidence * 100).toFixed(1) + '%' : 'N/A';
+        // Format timestamp in local timezone
+        const timestamp = row.created_at ? new Date(row.created_at).toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }) : 'N/A';
         csvLines.push([
           row.filename,
           row.classification.toUpperCase(),
@@ -132,6 +146,7 @@ router.get('/batch/:id/export', async (req, res, next) => {
           selectedGoodClass,
           confidence,
           row.hex_color || 'N/A',
+          timestamp,
           `${row.model_name}:${row.model_version}`,
           row.inference_time_ms || 'N/A'
         ].join(','));
@@ -152,7 +167,28 @@ router.get('/batch/:id/export', async (req, res, next) => {
         images: result.rows.map(row => ({
           ...row,
           selected_good_class: selectedGoodClass,
-          predicted_class: row.payload?.predicted_class || null
+          predicted_class: row.payload?.predicted_class || null,
+          // Format timestamps for display
+          created_at_formatted: row.created_at ? new Date(row.created_at).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Singapore'
+          }) : null,
+          prediction_time_formatted: row.prediction_time ? new Date(row.prediction_time).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Singapore'
+          }) : null
         }))
       });
     }

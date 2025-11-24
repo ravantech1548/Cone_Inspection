@@ -13,6 +13,7 @@ const useHttps = fs.existsSync(certFile) && fs.existsSync(keyFile);
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0', // Allow access from any IP on the network
     port: 5173,
     https: useHttps ? {
       key: fs.readFileSync(keyFile),
@@ -20,7 +21,7 @@ export default defineConfig({
     } : undefined,
     proxy: {
       '/api': {
-        target: useHttps ? 'https://localhost:3001' : 'http://localhost:3001',
+        target: useHttps ? 'https://192.168.1.106:3001' : 'http://192.168.1.106:3001',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
       }
