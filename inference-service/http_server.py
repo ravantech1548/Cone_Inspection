@@ -7,6 +7,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from ultralytics import YOLO
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -137,7 +141,9 @@ def classify():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 8000))
+    port = int(os.getenv('PORT', 5000))
+    host = os.getenv('HOST', '0.0.0.0')
+    use_https = os.getenv('USE_HTTPS', 'true').lower() == 'true'
     
     # Load model at startup
     try:
@@ -146,4 +152,21 @@ if __name__ == '__main__':
         print(f"Warning: Could not load model at startup: {e}")
         print("Model will be loaded on first request")
     
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # Start server with HTTPS if enabled
+    if use_https:
+        cert_file = os.getenv('TLS_CERT_PATH', './certs/inference-cert.pem')
+        key_file = os.getenv('TLS_KEY_PATH', './certs/inference-key.pem')
+        
+        # Check if certificate files exist
+        if os.path.exists(cert_file) and os.path.exists(key_file):
+            print(f"✓ HTTPS server running on https://{host}:{port}")
+            print(f"  Certificate: {cert_file}")
+            app.run(host=host, port=port, debug=False, ssl_context=(cert_file, key_file))
+        else:
+            print(f"⚠️  Certificate files not found, falling back to HTTP")
+            print(f"  Run: ./generate-ssl-certs.sh (or .ps1 on Windows)")
+            print(f"Server running on http://{host}:{port}")
+            app.run(host=host, port=port, debug=False)
+    else:
+        print(f"Server running on http://{host}:{port}")
+        app.run(host=host, port=port, debug=False)

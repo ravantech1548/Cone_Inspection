@@ -1,5 +1,9 @@
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/textile_inspector
+# IMPORTANT: Update this with your actual PostgreSQL password
+#DATABASE_URL=postgresql://postgres:YOUR_PASSWORD_HERE@localhost:5432/textile_inspector
+DATABASE_URL=postgresql://textile_user:textile_pass_123@127.0.0.1:5432/textile_inspector
+
+
 DB_POOL_MIN=2
 DB_POOL_MAX=10
 
