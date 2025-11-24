@@ -9,12 +9,13 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3001', 10),
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: process.env.FRONTEND_URL || 'http://192.168.1.106:5173',
   
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://localhost:5432/textile_inspector',
+    url: process.env.DATABASE_URL || 'postgresql://textile_user:textile_pass_123@127.0.0.1:5432/textile_inspector',
     poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
-    poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10)
+    poolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
+    timezone: process.env.DB_TIMEZONE || 'Asia/Singapore'
   },
   
   jwt: {
@@ -30,7 +31,7 @@ export const config = {
   
   inference: {
     timeout: parseInt(process.env.INFERENCE_TIMEOUT || '3000', 10),
-    serviceUrl: process.env.INFERENCE_SERVICE_URL || 'http://localhost:8000',
+    serviceUrl: process.env.INFERENCE_SERVICE_URL || 'http://192.168.1.106:5000',
     modelVersion: process.env.MODEL_VERSION || 'v1.0.0'
   },
   

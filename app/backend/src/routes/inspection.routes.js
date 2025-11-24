@@ -148,10 +148,17 @@ router.post('/classify-and-save', (req, res, next) => {
         const modelResult = await query('SELECT id FROM models WHERE is_active = true LIMIT 1');
         
         // Save prediction (prompt_id is nullable, not used with YOLO)
+        // Use ON CONFLICT to update if prediction already exists for this image
         await query(
           `INSERT INTO predictions (
             image_id, model_id, prompt_id, payload, tip_mask, inference_time_ms
-          ) VALUES ($1, $2, $3, $4, $5, $6)`,
+          ) VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (image_id) DO UPDATE SET
+            model_id = EXCLUDED.model_id,
+            payload = EXCLUDED.payload,
+            tip_mask = EXCLUDED.tip_mask,
+            inference_time_ms = EXCLUDED.inference_time_ms,
+            created_at = CURRENT_TIMESTAMP`,
           [
             imageId,
             modelResult.rows[0]?.id,

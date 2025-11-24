@@ -61,7 +61,8 @@ def classify():
             return jsonify({"error": "Missing image_path"}), 400
         
         image_path = data['image_path']
-        confidence_threshold = data.get('confidence_threshold', 0.3)  # Lowered from 0.7
+        default_confidence = float(os.getenv('DEFAULT_CONFIDENCE_THRESHOLD', '0.3'))
+        confidence_threshold = data.get('confidence_threshold', default_confidence)
         
         print(f"[INFERENCE] Original path: {image_path}")
         
