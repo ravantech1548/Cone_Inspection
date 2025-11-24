@@ -81,12 +81,25 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 let server;
 
 if (config.tls.enabled && config.tls.certPath && config.tls.keyPath) {
-  const options = {
-    cert: fs.readFileSync(config.tls.certPath),
-    key: fs.readFileSync(config.tls.keyPath)
-  };
-  server = https.createServer(options, app);
-  console.log('Starting HTTPS server...');
+  try {
+    const options = {
+      cert: fs.readFileSync(config.tls.certPath),
+      key: fs.readFileSync(config.tls.keyPath)
+    };
+    server = https.createServer(options, app);
+    server.listen(config.port, () => {
+      console.log(`✓ HTTPS server running on https://localhost:${config.port}`);
+      console.log(`  Environment: ${config.env}`);
+      console.log(`  Certificate: ${config.tls.certPath}`);
+    });
+  } catch (error) {
+    console.error('Failed to start HTTPS server:', error.message);
+    console.log('Falling back to HTTP...');
+    server = app.listen(config.port, () => {
+      console.log(`Server running on http://localhost:${config.port}`);
+      console.log(`Environment: ${config.env}`);
+    });
+  }
 } else {
   server = app.listen(config.port, () => {
     console.log(`Server running on http://localhost:${config.port}`);

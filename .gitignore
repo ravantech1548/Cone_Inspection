@@ -10,3 +10,12 @@ uploads/
 *.pem
 *.key
 venv/
+
+# SS
+L Certificates
+certs/
+*.pem
+*.pfx
+*.key
+*.crt
+*.cert

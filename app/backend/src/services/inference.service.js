@@ -10,6 +10,10 @@ const callYOLOInference = async (imagePath) => {
     console.log('[YOLO] Calling inference service:', config.inference.serviceUrl);
     console.log('[YOLO] Image path:', imagePath);
     
+    // Temporarily disable SSL verification for self-signed certificates
+    const originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    
     const response = await fetch(`${config.inference.serviceUrl}/api/classify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -19,6 +23,13 @@ const callYOLOInference = async (imagePath) => {
       }),
       signal: AbortSignal.timeout(config.inference.timeout)
     });
+    
+    // Restore original setting
+    if (originalRejectUnauthorized !== undefined) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalRejectUnauthorized;
+    } else {
+      delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    }
     
     console.log('[YOLO] Response status:', response.status);
     

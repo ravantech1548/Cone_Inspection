@@ -9,10 +9,21 @@ router.use(authenticate);
 // Get model classes from YOLO inference service
 router.get('/classes', async (req, res, next) => {
   try {
+    // Temporarily disable SSL verification for self-signed certificates
+    const originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    
     const response = await fetch(`${config.inference.serviceUrl}/api/model-info`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000)
     });
+    
+    // Restore original setting
+    if (originalRejectUnauthorized !== undefined) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalRejectUnauthorized;
+    } else {
+      delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    }
     
     if (!response.ok) {
       throw new Error('Failed to fetch model info');

@@ -125,6 +125,9 @@ const AuditPage = () => {
 
           <div className="images-section">
             <h3>Images ({report.images.length})</h3>
+            <p style={{ marginBottom: '1rem', color: '#666' }}>
+              <strong>Selected Good Class:</strong> {report.batch.selected_good_class || 'Not set'}
+            </p>
             <table className="report-images-table">
               <thead>
                 <tr>
@@ -132,6 +135,7 @@ const AuditPage = () => {
                   <th>Filename</th>
                   <th>Classification</th>
                   <th>Predicted Class</th>
+                  <th>Selected Good Class</th>
                   <th>Confidence</th>
                   <th>Model</th>
                   <th>Inference Time</th>
@@ -180,6 +184,12 @@ const AuditPage = () => {
                       </span>
                     </td>
                     <td>{image.payload?.predicted_class || 'N/A'}</td>
+                    <td style={{ 
+                      fontWeight: 'bold',
+                      color: image.payload?.predicted_class === report.batch.selected_good_class ? '#155724' : '#666'
+                    }}>
+                      {report.batch.selected_good_class || 'Not set'}
+                    </td>
                     <td>{image.confidence ? (image.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
                     <td>{image.model_name}:{image.model_version}</td>
                     <td>{image.inference_time_ms}ms</td>
