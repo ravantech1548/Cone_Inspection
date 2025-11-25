@@ -88,25 +88,25 @@ if (config.tls.enabled && config.tls.certPath && config.tls.keyPath) {
     };
     server = https.createServer(options, app);
     server.listen(config.port, '0.0.0.0', () => {
-      console.log(`✓ HTTPS server running on https://192.168.1.106:${config.port}`);
+      console.log(`✓ HTTPS server running on https://192.168.0.6:${config.port}`);
       console.log(`  Environment: ${config.env}`);
       console.log(`  Certificate: ${config.tls.certPath}`);
-      console.log(`  Accessible from intranet at: https://192.168.1.106:${config.port}`);
+      console.log(`  Accessible from intranet at: https://192.168.0.6:${config.port}`);
     });
   } catch (error) {
     console.error('Failed to start HTTPS server:', error.message);
     console.log('Falling back to HTTP...');
     server = app.listen(config.port, '0.0.0.0', () => {
-      console.log(`Server running on http://192.168.1.106:${config.port}`);
+      console.log(`Server running on http://192.168.0.6:${config.port}`);
       console.log(`Environment: ${config.env}`);
-      console.log(`Accessible from intranet at: http://192.168.1.106:${config.port}`);
+      console.log(`Accessible from intranet at: http://192.168.0.6:${config.port}`);
     });
   }
 } else {
   server = app.listen(config.port, '0.0.0.0', () => {
-    console.log(`Server running on http://192.168.1.106:${config.port}`);
+    console.log(`Server running on http://192.168.0.6:${config.port}`);
     console.log(`Environment: ${config.env}`);
-    console.log(`Accessible from intranet at: http://192.168.1.106:${config.port}`);
+    console.log(`Accessible from intranet at: http://192.168.0.6:${config.port}`);
   });
 }
 
