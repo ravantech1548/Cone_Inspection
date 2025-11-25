@@ -123,13 +123,13 @@ router.get('/batch/:id/export', async (req, res, next) => {
       // Images Section
       csvLines.push('INSPECTION DETAILS');
       csvLines.push('');
-      const headers = ['Filename', 'Classification', 'Predicted Class', 'Selected Good Class', 'Confidence', 'Hex Color', 'Date & Time', 'Model', 'Inference Time (ms)'];
+      const headers = ['Filename', 'Classification', 'Predicted Class', 'Selected Good Class', 'Inspector', 'Confidence', 'Hex Color', 'Date & Time', 'Model', 'Inference Time (ms)'];
       csvLines.push(headers.join(','));
       
       result.rows.forEach(row => {
         const predictedClass = row.payload?.predicted_class || 'N/A';
         const confidence = row.confidence ? (row.confidence * 100).toFixed(1) + '%' : 'N/A';
-        // Format timestamp in local timezone
+        // Format timestamp in Singapore timezone
         const timestamp = row.created_at ? new Date(row.created_at).toLocaleString('en-US', {
           year: 'numeric',
           month: '2-digit',
@@ -137,13 +137,15 @@ router.get('/batch/:id/export', async (req, res, next) => {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
-          hour12: false
+          hour12: false,
+          timeZone: 'Asia/Singapore'
         }) : 'N/A';
         csvLines.push([
           row.filename,
           row.classification.toUpperCase(),
           predictedClass,
           selectedGoodClass,
+          batch.username || 'Unknown',
           confidence,
           row.hex_color || 'N/A',
           timestamp,
@@ -167,6 +169,7 @@ router.get('/batch/:id/export', async (req, res, next) => {
         images: result.rows.map(row => ({
           ...row,
           selected_good_class: selectedGoodClass,
+          inspector: batch.username || 'Unknown',
           predicted_class: row.payload?.predicted_class || null,
           // Format timestamps for display
           created_at_formatted: row.created_at ? new Date(row.created_at).toLocaleString('en-US', {

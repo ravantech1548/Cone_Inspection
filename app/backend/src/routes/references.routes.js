@@ -26,11 +26,55 @@ router.get('/image/:class/:filename', async (req, res, next) => {
   }
 });
 
+// Public endpoint for listing reference images (accessible to all authenticated users)
+router.get('/list', authenticate, async (req, res, next) => {
+  try {
+    await fs.mkdir(REFERENCE_DIR, { recursive: true });
+    
+    const entries = await fs.readdir(REFERENCE_DIR);
+    const references = [];
+    const allClasses = [];
+    
+    for (const className of entries) {
+      const classPath = path.join(REFERENCE_DIR, className);
+      
+      try {
+        const stat = await fs.stat(classPath);
+        
+        if (stat.isDirectory()) {
+          allClasses.push(className);
+          
+          const files = await fs.readdir(classPath);
+          const imageFiles = files.filter(f => /\.(jpg|jpeg|png)$/i.test(f));
+          
+          for (const file of imageFiles) {
+            references.push({
+              class: className,
+              filename: file,
+              path: `/api/references/image/${className}/${file}`
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`Error reading class ${className}:`, err);
+      }
+    }
+    
+    res.json({ 
+      references, 
+      count: references.length,
+      classes: allClasses 
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Admin-only routes (for upload/delete)
 router.use(authenticate);
 router.use(authorize(ROLES.ADMIN));
 
-// List all reference images
+// List all reference images (admin endpoint - kept for backward compatibility)
 router.get('/', async (req, res, next) => {
   try {
     await fs.mkdir(REFERENCE_DIR, { recursive: true });

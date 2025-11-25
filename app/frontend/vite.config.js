@@ -21,7 +21,7 @@ export default defineConfig({
     } : undefined,
     proxy: {
       '/api': {
-        target: useHttps ? 'https://192.168.1.106:3001' : 'http://192.168.1.106:3001',
+        target: useHttps ? 'https://192.168.0.6:3001' : 'http://192.168.0.6:3001',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
       }

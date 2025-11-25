@@ -41,8 +41,8 @@ const InspectionPage = () => {
       const modelData = await api.get('/model/classes').catch(() => ({ classes: [] }));
       const modelClasses = modelData.classes || [];
       
-      // Get uploaded reference images
-      const refData = await api.get('/references').catch(() => ({ references: [] }));
+      // Get uploaded reference images (use /list endpoint accessible to all authenticated users)
+      const refData = await api.get('/references/list').catch(() => ({ references: [] }));
       const uploadedRefs = refData.references || [];
       
       // Create reference list with model classes
@@ -198,14 +198,6 @@ const InspectionPage = () => {
       }
       
       const classificationResult = await uploadResponse.json();
-      
-      // Check if duplicate
-      if (classificationResult.isDuplicate) {
-        alert('⚠️ Duplicate Image: This image was already scanned in this session.');
-        setCapturedImage(null);
-        setResult(null);
-        return;
-      }
       
       const finalResult = {
         ...classificationResult,
@@ -418,23 +410,23 @@ const InspectionPage = () => {
       </div>
 
       {batchResults.length > 0 && (
-        <div className="batch-summary">
-          <h3>Inspection Summary (Auto-Saved)</h3>
-          <div className="summary-stats">
-            <div className="stat">
+        <div className="batch-summary-bottom">
+          <h3>Summary</h3>
+          <div className="summary-stats-horizontal">
+            <div className="stat-item">
               <span className="stat-value">{batchResults.length}</span>
-              <span className="stat-label">Total</span>
+              <span className="stat-label">TOTAL</span>
             </div>
-            <div className="stat good">
+            <div className="stat-item good">
               <span className="stat-value">{batchResults.filter(r => r.classification === 'good').length}</span>
-              <span className="stat-label">Good</span>
+              <span className="stat-label">GOOD</span>
             </div>
-            <div className="stat reject">
+            <div className="stat-item reject">
               <span className="stat-value">{batchResults.filter(r => r.classification === 'reject').length}</span>
-              <span className="stat-label">Reject</span>
+              <span className="stat-label">REJECT</span>
             </div>
           </div>
-          <button onClick={viewBatch} className="btn-save">
+          <button onClick={viewBatch} className="btn-view-results-bottom">
             View Full Results
           </button>
         </div>

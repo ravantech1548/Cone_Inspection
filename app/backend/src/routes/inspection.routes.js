@@ -71,26 +71,8 @@ router.post('/classify-and-save', (req, res, next) => {
           [checksum, batchId]
         );
         
-        if (existingImage.rows.length > 0) {
-          // Image already exists in this batch
-          const existing = existingImage.rows[0];
-          
-          // Delete the duplicate file
-          await fs.unlink(savedPath).catch(() => {});
-          
-          return res.json({
-            imageId: existing.id,
-            predicted_class: selectedGoodClass,
-            confidence: existing.confidence || 0.85,
-            inference_time_ms: 0,
-            classification: existing.classification,
-            method: 'duplicate',
-            all_classes: {},
-            thumbnail: null,
-            isDuplicate: true,
-            message: 'This image was already scanned in this batch'
-          });
-        }
+        // Allow duplicate images - same image can be scanned multiple times
+        // Remove duplicate check to allow continuous scanning of same items
         
         // Get image metadata
         const metadata = await sharp(buffer).metadata();

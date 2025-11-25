@@ -24,7 +24,8 @@ const AuditPage = () => {
 
   const loadReport = async (batchId) => {
     try {
-      const data = await api.get(`/reports/batch/${batchId}`);
+      // Add cache-busting parameter to force fresh data
+      const data = await api.get(`/reports/batch/${batchId}?_t=${Date.now()}`);
       setReport(data);
       setSelectedBatch(batchId);
     } catch (error) {
@@ -105,6 +106,7 @@ const AuditPage = () => {
           <h2>Batch Report: {report.batch.name}</h2>
           
           <div className="report-actions">
+            <button onClick={() => loadReport(selectedBatch)}>🔄 Refresh Report</button>
             <button onClick={() => exportReport('json')}>Export JSON</button>
             <button onClick={() => exportReport('csv')}>Export CSV</button>
           </div>
@@ -137,6 +139,7 @@ const AuditPage = () => {
                   <th>Predicted Class</th>
                   <th>Selected Good Class</th>
                   <th>Confidence</th>
+                  <th>Timestamp</th>
                   <th>Model</th>
                   <th>Inference Time</th>
                 </tr>
@@ -191,6 +194,18 @@ const AuditPage = () => {
                       {report.batch.selected_good_class || 'Not set'}
                     </td>
                     <td>{image.confidence ? (image.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
+                    <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                      {image.created_at ? new Date(image.created_at).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true,
+                        timeZone: 'Asia/Singapore'
+                      }) : 'N/A'}
+                    </td>
                     <td>{image.model_name}:{image.model_version}</td>
                     <td>{image.inference_time_ms}ms</td>
                   </tr>
