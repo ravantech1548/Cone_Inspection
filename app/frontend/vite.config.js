@@ -14,14 +14,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0', // Allow access from any IP on the network
-    port: 5173,
+    port: 5174,
     https: useHttps ? {
       key: fs.readFileSync(keyFile),
       cert: fs.readFileSync(certFile),
     } : undefined,
     proxy: {
       '/api': {
-        target: useHttps ? 'https://192.168.0.6:3001' : 'http://192.168.0.6:3001',
+        target: useHttps ? 'https://192.168.0.6:3002' : 'http://192.168.0.6:3002',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
       }
