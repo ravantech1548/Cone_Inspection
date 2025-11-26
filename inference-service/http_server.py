@@ -142,7 +142,7 @@ def classify():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 5001))
     host = os.getenv('HOST', '0.0.0.0')
     use_https = os.getenv('USE_HTTPS', 'true').lower() == 'true'
     
